@@ -50,6 +50,22 @@ var imagesCommand = &cli.Command{
 }
 
 func imagesAction(clicontext *cli.Context) error {
+	filters := ""
+	if clicontext.NArg() > 0 {
+		slashCount := strings.Count(clicontext.Args().First(), "/")
+		switch slashCount {
+		case 0:
+			filters = fmt.Sprintf("name==docker.io/library/%s", clicontext.Args().First())
+			break
+		case 1:
+			filters = fmt.Sprintf("name==docker.io/%s", clicontext.Args().First())
+			break
+		default:
+			filters = fmt.Sprintf("name==%s", clicontext.Args().First())
+			break
+		}
+
+	}
 	client, ctx, cancel, err := newClient(clicontext)
 	if err != nil {
 		return err
@@ -62,8 +78,7 @@ func imagesAction(clicontext *cli.Context) error {
 	)
 
 	// To-do: Add support for --filter.
-	// Set filters to "" for now.
-	imageList, err := imageStore.List(ctx, "")
+	imageList, err := imageStore.List(ctx, filters)
 	if err != nil {
 		return err
 	}
